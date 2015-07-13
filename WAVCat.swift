@@ -8,11 +8,19 @@
 
 import UIKit
 
+struct Header {
+    var channels:Int
+    var samplesPerSecond:Int
+    var bytesPerSecond:Int
+    var dataSize:Int
+}
+
 class WAVCat: NSObject {
 
     private var finalData:NSMutableData?
     private var initialData:NSData?
-    var headerBytes:[UInt8]?
+    private var headerBytes:[UInt8]?
+    private var headerInfo:Header?
 
     init(url:NSURL){
 
@@ -26,23 +34,42 @@ class WAVCat: NSObject {
     */
     init(data:NSData) {
         super.init()
-
         self.initialData = data;
         self.extractHeaders()
 
     }
 
+    /**
+    Extracts the first 44 bytes of the initialData since WAV headers have this length
+    */
     private final func extractHeaders(){
         if let data = self.initialData{
-
-            let count = data.length / sizeof(UInt32)
             let reference = UnsafePointer<UInt8>(data.bytes)
+
+            // Count is 44 since wav headers are 44 bytes long
             let buffer = UnsafeBufferPointer<UInt8>(start:reference, count:44)
-            self.headerBytes = [UInt8](buffer)
+            let header = [UInt8](buffer)
 
-        } else {
-
+            self.validate(header, withData: data)
         }
+    }
+
+    /**
+    Validate that the headers extracted are indeed valid WAV headers and data has the correct size
+    */
+    private final func validate(header:[UInt8], withData data:NSData){
+
+        // very simple way to validate
+        let fileDescription = header[0...3]
+        let wavDescription = header[8...11]
+        let formatDescription = header[12...15]
+        let dataSize = data.length - 44
+
+        let str = String(bytes: fileDescription+wavDescription+formatDescription, encoding: NSUTF8StringEncoding)
+
+
+
+
     }
 
     
