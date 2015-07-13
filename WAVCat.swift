@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Darwin
 
 struct Header {
     var channels:Int
@@ -58,17 +59,24 @@ class WAVCat: NSObject {
     Validate that the headers extracted are indeed valid WAV headers and data has the correct size
     */
     private final func validate(header:[UInt8], withData data:NSData){
-
-        // very simple way to validate
+        // extract values for validation
         let fileDescription = header[0...3]
         let wavDescription = header[8...11]
-        let formatDescription = header[12...15]
-        let dataSize = data.length - 44
+        let formatDescription = header[12...14]
+        let headerDataSize = header[40...41]
 
-        let str = String(bytes: fileDescription+wavDescription+formatDescription, encoding: NSUTF8StringEncoding)
+        let hexNumber = String(headerDataSize[1], radix: 16, uppercase: false) + String(headerDataSize[0], radix: 16, uppercase: false)
 
+        let expectedSize = data.length - 44
+        let dataSize = Int(strtoul(hexNumber, nil, 16))
 
+        if let str = String(bytes: fileDescription+wavDescription+formatDescription, encoding: NSUTF8StringEncoding){
 
+            // very simple way to validate
+            if str == "RIFFWAVEfmt" && expectedSize == dataSize {
+
+            }
+        }
 
     }
 
