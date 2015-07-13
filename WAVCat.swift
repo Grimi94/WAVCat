@@ -18,13 +18,15 @@ struct Header {
 
 class WAVCat: NSObject {
 
-    private var finalData:NSMutableData?
+    private var contentData:NSMutableData
     private var initialData:NSData?
-    private var headerBytes:[UInt8]?
+    private var headerBytes:[UInt8]
     private var headerInfo:Header?
 
-    init(url:NSURL){
-
+    override init(){
+        self.contentData = NSMutableData()
+        self.headerBytes = []
+        super.init()
     }
 
     /**
@@ -33,11 +35,10 @@ class WAVCat: NSObject {
 
     :param: initialData NSData with contents of wav file
     */
-    init(data:NSData) {
-        super.init()
+    convenience init(data:NSData) {
+        self.init()
         self.initialData = data;
-        self.extractHeaders()
-
+        extractHeaders()
     }
 
     /**
@@ -75,9 +76,31 @@ class WAVCat: NSObject {
             // very simple way to validate
             if str == "RIFFWAVEfmt" && expectedSize == dataSize {
 
+                // currently only data size is being used
+                self.headerInfo = Header(channels: 0, samplesPerSecond: 0, bytesPerSecond: 0, dataSize: dataSize)
+                self.headerBytes = header
+
             }
         }
 
+    }
+
+    final func append(data:NSData){
+
+    }
+
+    /**
+    Merges header data with the contentData
+
+    :returns: Playable NSData
+    */
+    final func getData() -> NSData{
+        let temp = NSMutableData()
+
+        temp.appendData(NSData(bytes: &headerBytes, length: headerBytes.count))
+        temp.appendData(contentData)
+
+        return temp
     }
 
     
