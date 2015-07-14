@@ -97,6 +97,11 @@ class WAVCat: NSObject {
         return nil
     }
 
+    /**
+    Append incomming data to the existing data and also adjusts header size
+
+    :param: data WAV file data
+    */
     final func append(data:NSData){
         if let header = validate(data){
             let hexSizeCurrent = String(headerBytes[41], radix: 16, uppercase: false) + String(headerBytes[40], radix: 16, uppercase: false)
@@ -114,7 +119,6 @@ class WAVCat: NSObject {
 
             contentData.appendData(extractData(data))
             
-
         } else {
             // throw error
         }
