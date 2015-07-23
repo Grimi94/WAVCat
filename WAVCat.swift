@@ -108,18 +108,26 @@ class WAVCat: NSObject {
     */
     final func append(data:NSData){
         if let header = validate(data){
-            let hexSizeCurrent = String(headerBytes[41], radix: 16, uppercase: false) + String(headerBytes[40], radix: 16, uppercase: false)
-            let hexSizeData    = String(header[41], radix: 16, uppercase: false) + String(header[40], radix: 16, uppercase: false)
-            let currentSize    = Int(strtoul(hexSizeCurrent, nil, 16))
-            let dataSize       = Int(strtoul(hexSizeData, nil, 16))
+            let dataSizeBytes    = header[40...43]
+            let currentSizeBytes = headerBytes[40...43]
+
+            var currentSize:UInt32 = 0
+            var dataSize:UInt32    = 0
+
+            for (index, byte) in enumerate(dataSizeBytes) {
+                currentSize += UInt32(byte) << UInt32(8 * index)
+            }
+
+            for (index, byte) in enumerate(currentSizeBytes) {
+                dataSize += UInt32(byte) << UInt32(8 * index)
+            }
 
             let newSize = currentSize + dataSize
-            let hexSizenew = String(newSize, radix: 16, uppercase: false)
-            let secondHalf = (hexSizenew as NSString).substringFromIndex(count(hexSizenew)-2)
-            let firstHalf = (hexSizenew as NSString).substringToIndex((count(hexSizenew)/4)+1)
 
-            headerBytes[41] = UInt8(strtoul(firstHalf, nil, 16))
-            headerBytes[40] = UInt8(strtoul(secondHalf, nil, 16))
+            headerBytes[43] = UInt8(newSize >> 24)
+            headerBytes[42] = UInt8(newSize >> 16)
+            headerBytes[41] = UInt8(newSize >> 8)
+            headerBytes[40] = UInt8(newSize >> 0)
 
             contentData.appendData(extractData(data))
             
