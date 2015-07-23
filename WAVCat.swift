@@ -78,10 +78,14 @@ class WAVCat: NSObject {
         let fileDescription   = header[0...3]
         let wavDescription    = header[8...11]
         let formatDescription = header[12...14]
-        let headerDataSize    = header[40...41]
+        let headerDataSize    = header[40...43]
+        var hexNumber:String     = ""
 
-        let hexNumber    = String(headerDataSize[1], radix: 16, uppercase: false) + String(headerDataSize[0], radix: 16, uppercase: false)
-        let expectedSize = data.length - 44
+        for byte in reverse(headerDataSize) {
+            hexNumber += String(byte, radix: 16, uppercase: false)
+        }
+
+        let expectedSize = data.length - 44 // 44 is the size of the header
         let dataSize     = Int(strtoul(hexNumber, nil, 16))
 
         if let str = String(bytes: fileDescription+wavDescription+formatDescription, encoding: NSUTF8StringEncoding){
@@ -114,8 +118,8 @@ class WAVCat: NSObject {
             let secondHalf = (hexSizenew as NSString).substringFromIndex(count(hexSizenew)-2)
             let firstHalf = (hexSizenew as NSString).substringToIndex((count(hexSizenew)/4)+1)
 
-            headerBytes[41] = UInt8(strtoul(secondHalf, nil, 16))
-            headerBytes[40] = UInt8(strtoul(firstHalf, nil, 16))
+            headerBytes[41] = UInt8(strtoul(firstHalf, nil, 16))
+            headerBytes[40] = UInt8(strtoul(secondHalf, nil, 16))
 
             contentData.appendData(extractData(data))
             
