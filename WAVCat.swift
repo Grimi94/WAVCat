@@ -127,7 +127,7 @@ class WAVCat: NSObject {
             headerBytes[43] = UInt8(newSize >> 24)
             headerBytes[42] = UInt8(newSize >> 16)
             headerBytes[41] = UInt8(newSize >> 8)
-            headerBytes[40] = UInt8(newSize >> 0)
+            headerBytes[40] = UInt8((newSize << 24) >> 24)  // UInt8(newSize) crashes...
 
             contentData.appendData(extractData(data))
             
