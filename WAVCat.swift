@@ -76,22 +76,22 @@ class WAVCat: NSObject {
         // extract values for validation
         let header            = extractHeaders(data)
         let fileDescription   = header[0...3]
+        let fileSize          = header[4...7]
         let wavDescription    = header[8...11]
         let formatDescription = header[12...14]
         let headerDataSize    = header[40...43]
-        var hexNumber:String     = ""
+        var dataSize:UInt32   = 0
 
-        for byte in reverse(headerDataSize) {
-            hexNumber += String(byte, radix: 16, uppercase: false)
+        for (index, byte) in enumerate(headerDataSize) {
+            dataSize |= UInt32(byte) << UInt32(8 * index)
         }
 
-        let expectedSize = data.length - 44 // 44 is the size of the header
-        let dataSize     = Int(strtoul(hexNumber, nil, 16))
+        let expectedDataSize = data.length - 44 // 44 is the size of the header
 
         if let str = String(bytes: fileDescription+wavDescription+formatDescription, encoding: NSUTF8StringEncoding){
 
             // very simple way to validate
-            if str == "RIFFWAVEfmt" && expectedSize == dataSize {
+            if str == "RIFFWAVEfmt" && expectedDataSize == Int(dataSize) {
 
                 // currently only data size is being used
 //                self.headerInfo = Header(channels: 0, samplesPerSecond: 0, bytesPerSecond: 0, dataSize: dataSize)
@@ -115,14 +115,15 @@ class WAVCat: NSObject {
             var dataSize:UInt32    = 0
 
             for (index, byte) in enumerate(dataSizeBytes) {
-                currentSize += UInt32(byte) << UInt32(8 * index)
+                currentSize |= UInt32(byte) << UInt32(8 * index)
             }
 
             for (index, byte) in enumerate(currentSizeBytes) {
-                dataSize += UInt32(byte) << UInt32(8 * index)
+                dataSize |= UInt32(byte) << UInt32(8 * index)
             }
 
             let newSize = currentSize + dataSize
+            
 
             headerBytes[43] = UInt8(newSize >> 24)
             headerBytes[42] = UInt8(newSize >> 16)
