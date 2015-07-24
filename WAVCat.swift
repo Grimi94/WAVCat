@@ -123,7 +123,12 @@ class WAVCat: NSObject {
             }
 
             let newSize = currentSize + dataSize
-            
+            let fileSize = newSize + 44 - 8
+
+            headerBytes[4] = UInt8(fileSize >> 24)
+            headerBytes[5] = UInt8(fileSize >> 16)
+            headerBytes[6] = UInt8(fileSize >> 8)
+            headerBytes[7] = UInt8((fileSize << 24) >> 24)
 
             headerBytes[43] = UInt8(newSize >> 24)
             headerBytes[42] = UInt8(newSize >> 16)
